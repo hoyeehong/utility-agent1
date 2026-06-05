@@ -1,0 +1,13 @@
+# Railroad configuration for Railway deployment
+
+[build]
+builder = "nixpacks"
+
+[environments.production]
+# Python runtime
+pythonVersion = "3.11"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckInterval = 10
