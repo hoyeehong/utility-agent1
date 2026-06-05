@@ -4,53 +4,35 @@
 
 ```bash
 # 1. Install dependencies
-npm install
+pip install -r requirements.txt
 
 # 2. Generate encryption key
-ENCRYPTION_KEY=$(openssl rand -hex 32)
-echo "ENCRYPTION_KEY=$ENCRYPTION_KEY"
+python -c "import secrets; print(secrets.token_hex(32))"
 
-# 3. Generate WhatsApp verify token
-VERIFY_TOKEN=$(openssl rand -hex 16)
-echo "VERIFY_TOKEN=$VERIFY_TOKEN"
+# 3. Copy environment template
+cp .env.example .env
 
-# 4. Copy environment template
-cp .env.example .env.local
-
-# 5. Edit .env.local with:
-#    - ANTHROPIC_API_KEY (from console.anthropic.com)
-#    - DATABASE_URL (from Supabase)
-#    - WHATSAPP_API_KEY (from Meta)
+# 4. Edit .env with:
+#    - TELEGRAM_BOT_TOKEN (from BotFather)
+#    - SUPABASE_URL (from Supabase project)
+#    - SUPABASE_KEY (from Supabase project)
+#    - GOOGLE_APPLICATION_CREDENTIALS (optional, for OCR)
 #    - ENCRYPTION_KEY (generated above)
-#    - WHATSAPP_VERIFY_TOKEN (generated above)
 
-# 6. Run locally
-npm run dev
-# Open http://localhost:3000
+# 5. Run locally
+python main.py
+# Server runs on http://localhost:8000
 ```
 
 ---
 
-## 📋 Environment Variables Needed
+## 📋 Environment Variables Needed (Required)
 
 | Variable | Get From | Format |
 |----------|----------|--------|
-| `ANTHROPIC_API_KEY` | console.anthropic.com | `sk-ant-...` |
-| `DATABASE_URL` | Supabase project | `postgresql://...` |
-| `SUPABASE_URL` | Supabase project | `https://xxx.supabase.co` |
-| `SUPABASE_ANON_KEY` | Supabase project | API key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase project | Secret key ⚠️ |
-| `WHATSAPP_API_KEY` | Meta Business Platform | API key |
-| `WHATSAPP_PHONE_ID` | Meta Business Platform | Numeric ID |
-| `WHATSAPP_VERIFY_TOKEN` | Generate: `openssl rand -hex 16` | Random string |
-| `ENCRYPTION_KEY` | Generate: `openssl rand -hex 32` | 64 hex chars |
-| `KV_URL` | Vercel Storage | Redis URL |
-| `KV_REST_API_URL` | Vercel Storage | API URL |
-| `KV_REST_API_TOKEN` | Vercel Storage | Access token |
-| `BLOB_READ_WRITE_TOKEN` | Vercel Storage | Token |
-| `CALCULATOR_ENDPOINT` | Your app | `https://your-app.vercel.app/api/calculate` |
-| `LOG_LEVEL` | Choose | `debug`, `info`, `warn`, `error` |
-| `SENTRY_DSN` | Sentry (optional) | Full DSN |
+| `TELEGRAM_BOT_TOKEN` | BotFather on Telegram | `123456:ABC-DEF...` |
+| `SUPABASE_URL` | Supabase project settings | `https://xxx.supabase.co` |
+| `SUPABASE_KEY` | Supabase project settings | Anon key |
 
 ---
 
@@ -58,100 +40,77 @@ npm run dev
 
 ### Step 1: Create Supabase Project
 ```
-Go to: https://supabase.com/dashboard
+Go to: https://app.supabase.com/projects
 Create new project
 ```
 
 ### Step 2: Run Schema Migration
 Copy entire contents of:
 ```
-supabase/migrations/001_initial_schema.sql
+supabase/schema.sql
 ```
 
 Paste into Supabase SQL editor and run.
 
-### Step 3: Get Connection String
+### Step 3: Get Connection Details
 ```
-Settings → Database → Connection String → URI
+Settings → API → URL and anon key
 ```
 
-Copy to `.env.local` as `DATABASE_URL`
+Copy to `.env` as `SUPABASE_URL` and `SUPABASE_KEY`
 
 ---
 
 ## ✅ Local Testing
 
-### Test Orchestrator
-```typescript
-import { orchestrateWorkflow } from '@/lib/orchestrator';
-import * as fs from 'fs';
+### Test Calculator
+```python
+from utility_calculator import UtilityCalculator
 
-const imageBuffer = fs.readFileSync('./test-image.jpg');
-const result = await orchestrateWorkflow(
-  'tenant_123',
-  '2026-06',
-  [imageBuffer],
-  './test-bill.pdf'
-);
-
-console.log(result.data?.bill.total_bill); // e.g., $77.70
+calc = UtilityCalculator()
+bill = calc.calculate_bill(
+    electricity_usage=150,  # kWh
+    water_usage=8.3,        # m³
+    previous_data={'electricity': 100, 'water': 5}
+)
+print(f"Total bill: ${bill['total_bill_with_gst']:.2f}")
 ```
 
-### Test Individual Agents
-```typescript
-// Image OCR
-import { imageOCRAgent } from '@/lib/agents/image-ocr';
-const ocr = await imageOCRAgent({ image_data: buffer, image_format: 'jpg' });
+### Test Tariff Manager
+```python
+from tariff_rate_manager import TariffRateManager
 
-// PDF Extraction
-import { pdfExtractionAgent } from '@/lib/agents/pdf-extraction';
-const pdf = await pdfExtractionAgent({ pdf_path: './bill.pdf' });
-
-// Validation
-import { validationAgent } from '@/lib/agents/validation';
-const valid = await validationAgent({ readings: ocr.reading });
+manager = TariffRateManager()
+rates = manager.get_rates()
+print(f"Electricity rate: ${rates['electricity_rate']}/kWh")
+print(f"Water rate: ${rates['water_rate']}/m³")
 ```
 
 ---
 
-## 🚀 Deploy to Vercel
+## 🚀 Deploy to Railway
 
 ```bash
-# 1. Install Vercel CLI
-npm install -g vercel
+# 1. Install Railway CLI
+curl -fsSL https://railway.app/install.sh | sh
 
-# 2. Set environment variables
-vercel env add ANTHROPIC_API_KEY
-vercel env add DATABASE_URL
-vercel env add SUPABASE_URL
-vercel env add SUPABASE_ANON_KEY
-vercel env add SUPABASE_SERVICE_ROLE_KEY
-vercel env add WHATSAPP_API_KEY
-vercel env add WHATSAPP_PHONE_ID
-vercel env add WHATSAPP_VERIFY_TOKEN
-vercel env add ENCRYPTION_KEY
-vercel env add KV_URL
-vercel env add KV_REST_API_URL
-vercel env add KV_REST_API_TOKEN
-vercel env add BLOB_READ_WRITE_TOKEN
-vercel env add CALCULATOR_ENDPOINT
-# ... add others from ENV_CHECKLIST.md
+# 2. Login to Railway
+railway login
 
-# 3. Deploy
-vercel deploy --prod
+# 3. Create new project
+railway init
 
-# 4. Get your URL
-# https://your-project.vercel.app
+# 4. Set environment variables
+railway variable set TELEGRAM_BOT_TOKEN your-token
+railway variable set SUPABASE_URL your-url
+railway variable set SUPABASE_KEY your-key
+
+# 5. Deploy
+railway deploy
+
+# 6. Get your URL
+railway open
 ```
-
----
-
-## 🔧 Configure WhatsApp Webhook
-
-1. Go to Meta Business Platform → WhatsApp → API Setup
-2. Set Callback URL: `https://your-project.vercel.app/api/webhook/whatsapp`
-3. Set Verify Token: Your `WHATSAPP_VERIFY_TOKEN` value
-4. Subscribe to: `messages`
 
 ---
 
@@ -159,23 +118,19 @@ vercel deploy --prod
 
 ### Test 1: Health Check
 ```bash
-curl http://localhost:3000/api/health
+curl http://localhost:8000/health
 ```
 
-### Test 2: Mock Bill Calculation
+### Test 2: Calculate Bill
 ```bash
-curl -X POST http://localhost:3000/api/calculate-bill \
+curl -X POST http://localhost:8000/api/calculate \
   -H "Content-Type: application/json" \
   -d '{
-    "tenant_id": "test_123",
-    "billing_period": "2026-06",
-    "image_data": "base64_encoded_image"
+    "electricity_current": 150,
+    "electricity_previous": 100,
+    "water_current": 8.3,
+    "water_previous": 5.0
   }'
-```
-
-### Test 3: WhatsApp Webhook Verification
-```bash
-curl "http://localhost:3000/api/webhook/whatsapp?hub.mode=subscribe&hub.verify_token=YOUR_TOKEN&hub.challenge=test_challenge"
 ```
 
 ---
@@ -184,35 +139,27 @@ curl "http://localhost:3000/api/webhook/whatsapp?hub.mode=subscribe&hub.verify_t
 
 ### View Logs (Local)
 ```bash
-npm run dev
+python main.py
 # Logs appear in console
 ```
 
-### View Logs (Production)
+### View Logs (Railway)
 ```bash
-vercel logs
+railway logs
 ```
 
-### Database Queries
+### Database Queries (Supabase)
 ```bash
-# Open Supabase Dashboard
-# Go to SQL Editor
+# Open Supabase Dashboard → SQL Editor
 
-# View audit logs
-SELECT * FROM audit_logs 
-ORDER BY created_at DESC 
-LIMIT 10;
+# View tariff rates
+SELECT * FROM tariff_rates ORDER BY updated_at DESC LIMIT 5;
+
+# View meter readings
+SELECT * FROM meter_readings ORDER BY created_at DESC LIMIT 10;
 
 # View bills
-SELECT * FROM bills 
-WHERE tenant_id = 'your_tenant_id'
-ORDER BY created_at DESC;
-
-# View errors
-SELECT workflow_id, error_message, created_at
-FROM audit_logs
-WHERE status = 'failure'
-ORDER BY created_at DESC;
+SELECT * FROM bills ORDER BY created_at DESC LIMIT 10;
 ```
 
 ---
@@ -221,64 +168,52 @@ ORDER BY created_at DESC;
 
 ```
 demo/
-├── api/                    ← API endpoints
-│   ├── webhook/whatsapp.ts (WhatsApp receiver)
-│   └── calculate-bill.ts   (Example endpoint)
-│
-├── lib/                    ← Core logic
-│   ├── orchestrator.ts     ⭐ MAIN COORDINATOR
-│   ├── logger.ts           (Logging)
-│   ├── encryption.ts       (Security)
-│   └── agents/
-│       ├── image-ocr.ts    (Claude Vision)
-│       ├── pdf-extraction.ts (PDF + redaction)
-│       ├── validation.ts   (Reconciliation)
-│       └── formatter.ts    (Response formatting)
-│
-├── types/index.ts          ← TypeScript types
-│
-├── supabase/
-│   └── migrations/001_initial_schema.sql (DB schema)
-│
+├── main.py                      ← FastAPI app
+├── utility_calculator.py        ⭐ BILL CALCULATION
+├── tariff_rate_manager.py       ← Dynamic rates
+├── telegram_handler.py          ← Telegram integration
+├── agents_image_ocr.py          (Image processing)
+├── agents_pdf_extraction.py     (PDF processing)
+├── agents_validation.py         (Validation)
+├── agents_formatter.py          (Response formatting)
+├── cli_admin.py                 (Admin CLI)
+├── encryption.py                (Security)
+├── logger.py                    (Logging)
+├── schemas.py                   (Data models)
+├── requirements.txt             (Dependencies)
+├── supabase/schema.sql          (DB schema)
+├── railway.toml                 (Railway config)
+├── Procfile                     (Start command)
+├── .env.example                 (Environment template)
 └── Documentation
-    ├── README.md           (Start here)
-    ├── IMPLEMENTATION_GUIDE.md (Detailed)
-    ├── ENV_CHECKLIST.md    (All env vars)
-    ├── PROJECT_SUMMARY.md  (What's built)
-    └── QUICK_START.md      (This file)
+    ├── README.md
+    ├── QUICK_START.md (this file)
+    ├── PROJECT_SUMMARY.md
+    └── DEPLOYMENT_CHECKLIST.md
 ```
 
 ---
 
 ## 🎯 Common Tasks
 
-### Add New Tenant
-```sql
-INSERT INTO tenants (name, whatsapp_phone, email)
-VALUES ('John Tenant', '+6581234567', 'john@example.com');
+### Add Tariff Rate
+```bash
+python cli_admin.py add-rate --type electricity --rate 0.2674 --effective-date 2026-06-01
 ```
 
-### Query Tenant Bills
-```sql
-SELECT * FROM bills
-WHERE tenant_id = (SELECT id FROM tenants WHERE whatsapp_phone = '+6581234567')
-ORDER BY created_at DESC;
+### Check Current Rates
+```bash
+python cli_admin.py get-rates
 ```
 
-### Check OCR Quality
-```sql
-SELECT action, stage, output_data->'confidence_score' as confidence
-FROM audit_logs
-WHERE action = 'image_extraction'
-ORDER BY created_at DESC
-LIMIT 5;
-```
-
-### Find Discrepancies
-```sql
-SELECT * FROM discrepancies
-WHERE status = 'pending'
-ORDER BY created_at DESC;
+### Calculate Bill
+```bash
+python -c "
+from utility_calculator import UtilityCalculator
+calc = UtilityCalculator()
+bill = calc.calculate_bill(150, 8.3, {'electricity': 100, 'water': 5})
+print(f'Bill: \${bill[\"total_bill_with_gst\"]:.2f}')
+"
 ```
 
 ---
@@ -287,21 +222,21 @@ ORDER BY created_at DESC;
 
 | Error | Solution |
 |-------|----------|
-| "ENCRYPTION_KEY not set" | `openssl rand -hex 32` and add to `.env.local` |
-| "Database connection failed" | Check DATABASE_URL format and Supabase is running |
-| "OCR confidence too low" | Provide clearer image, ensure meter display visible |
-| "WhatsApp webhook not receiving" | Check webhook URL in Meta Platform matches Vercel URL |
-| "Claude API error" | Verify ANTHROPIC_API_KEY is correct and not expired |
+| "Telegram token not set" | Copy TELEGRAM_BOT_TOKEN to .env from BotFather |
+| "Supabase connection failed" | Check SUPABASE_URL and SUPABASE_KEY format |
+| "Database schema error" | Run supabase/schema.sql in Supabase SQL editor |
+| "Encryption key invalid" | Generate new key: `python -c "import secrets; print(secrets.token_hex(32))"` |
+| "Rates table empty" | Run admin CLI: `python cli_admin.py add-rate ...` |
 
 ---
 
 ## 📞 Support Quick Links
 
-- **Anthropic Docs:** https://docs.anthropic.com
+- **Telegram Bot API:** https://core.telegram.org/bots/api
 - **Supabase Docs:** https://supabase.com/docs
-- **Vercel Docs:** https://vercel.com/docs
-- **WhatsApp Docs:** https://developers.facebook.com/docs/whatsapp
-- **Next.js Docs:** https://nextjs.org/docs
+- **Railway Docs:** https://docs.railway.app
+- **Google Cloud Vision:** https://cloud.google.com/vision/docs
+- **FastAPI:** https://fastapi.tiangolo.com/
 
 ---
 
@@ -309,17 +244,17 @@ ORDER BY created_at DESC;
 
 Everything is set up. Next steps:
 
-1. ✅ Run locally: `npm run dev`
-2. ✅ Set up Supabase database
-3. ✅ Fill in `.env.local` with API keys
-4. ✅ Test orchestrator with sample image
-5. ✅ Deploy to Vercel: `vercel deploy --prod`
-6. ✅ Configure WhatsApp webhook
+1. ✅ Create Telegram bot via BotFather
+2. ✅ Create Supabase project
+3. ✅ Fill in `.env` with tokens
+4. ✅ Run locally: `python main.py`
+5. ✅ Test calculator with sample data
+6. ✅ Deploy to Railway
 7. ✅ Go live! 🚀
 
 ---
 
 **Questions?** Check:
 - README.md (overview)
-- IMPLEMENTATION_GUIDE.md (detailed)
-- ENV_CHECKLIST.md (all variables)
+- PROJECT_SUMMARY.md (architecture)
+- DEPLOYMENT_CHECKLIST.md (deployment steps)

@@ -40,14 +40,12 @@ In Railway Dashboard → Your Project → Variables tab:
 ```
 SUPABASE_URL = https://your-project.supabase.co
 SUPABASE_KEY = your-anon-key
-ANTHROPIC_API_KEY = your-anthropic-key
 TELEGRAM_BOT_TOKEN = your-telegram-bot-token
 TELEGRAM_ADMIN_ID = your-telegram-id (optional)
 ```
 
 - [ ] Set SUPABASE_URL
 - [ ] Set SUPABASE_KEY
-- [ ] Set ANTHROPIC_API_KEY
 - [ ] Set TELEGRAM_BOT_TOKEN
 - [ ] Trigger redeploy (click deploy button)
 

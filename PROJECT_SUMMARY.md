@@ -155,28 +155,19 @@ WhatsApp API (send response)
 
 ---
 
-## 📋 Environment Variables (22 total)
+## 📋 Environment Variables (Required)
 
 ### Critical (Must have)
-- `ANTHROPIC_API_KEY` - Claude API key
-- `DATABASE_URL` - Supabase connection string
-- `ENCRYPTION_KEY` - 64-hex character encryption key
-
-### WhatsApp Integration
-- `WHATSAPP_API_KEY`, `WHATSAPP_PHONE_ID`, `WHATSAPP_VERIFY_TOKEN`
-
-### Vercel Storage
-- `KV_URL`, `KV_REST_API_URL`, `KV_REST_API_TOKEN`
-- `BLOB_READ_WRITE_TOKEN`
-
-### Your Calculator
-- `CALCULATOR_ENDPOINT` - Your existing calculator API URL
+- `SUPABASE_URL` - Supabase project URL
+- `SUPABASE_KEY` - Supabase anonymous key
+- `TELEGRAM_BOT_TOKEN` - Telegram bot token
 
 ### Optional
-- `SENTRY_DSN` - Error tracking
-- `LOG_LEVEL` - Logging verbosity
+- `GOOGLE_APPLICATION_CREDENTIALS` - Google Cloud Vision credentials (for OCR)
+- `ENCRYPTION_KEY` - 64-hex character encryption key
+- `LOG_LEVEL` - Logging verbosity (default: INFO)
 
-**See ENV_CHECKLIST.md for complete list with instructions.**
+**See .env.example for complete template.**
 
 ---
 
@@ -329,13 +320,10 @@ PROJECT_SUMMARY.md (THIS FILE)
 
 | Service | Monthly | Per Bill |
 |---------|---------|----------|
-| Claude API | $5 | $0.05 |
-| Vercel | $0 | $0 |
-| Blob Storage | $10 | $0.10 |
-| Vercel KV | $7.50 | $0.075 |
 | Supabase | $25 | $0.25 |
-| WhatsApp | $10 | $0.10 |
-| **TOTAL** | **~$57.50** | **~$0.575** |
+| Google Cloud Vision | ~$5 | ~$0.05 |
+| Telegram | $0 | $0 |
+| **TOTAL** | **~$30** | **~$0.30** |
 
 ---
 
@@ -363,11 +351,11 @@ PROJECT_SUMMARY.md (THIS FILE)
 
 ## 📞 Support Resources
 
-- **Anthropic (Claude):** https://docs.anthropic.com
 - **Supabase:** https://supabase.com/docs
-- **Vercel:** https://vercel.com/docs
-- **WhatsApp Business:** https://developers.facebook.com/docs/whatsapp
-- **Next.js:** https://nextjs.org/docs
+- **Telegram Bot API:** https://core.telegram.org/bots
+- **Google Cloud Vision:** https://cloud.google.com/vision/docs
+- **FastAPI:** https://fastapi.tiangolo.com/
+- **Python Requests:** https://requests.readthedocs.io/
 
 ---
 

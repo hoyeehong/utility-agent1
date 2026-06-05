@@ -77,7 +77,6 @@ In Railway Dashboard → Your Project → Variables tab, add:
 
 SUPABASE_URL = https://your-project.supabase.co
 SUPABASE_KEY = your-anon-key
-ANTHROPIC_API_KEY = your-anthropic-api-key
 TELEGRAM_BOT_TOKEN = your-telegram-bot-token
 TELEGRAM_ADMIN_ID = your-telegram-user-id (optional)
 
@@ -169,14 +168,14 @@ Supabase (Free Tier)
    API:        50,000 requests included
    Total:      $0
 
-Anthropic API (Usage-based)
-   Per image:  ~$0.01
-   Monthly:    $0.50-2.00 (low volume)
+Google Cloud Vision (Usage-based, Optional)
+   Per image:  ~$0.001-0.01
+   Monthly:    ~$0.50 (low volume)
 
 Telegram Bot
    Cost:       Free
 
-TOTAL ESTIMATED: $0-3/month ✅
+TOTAL ESTIMATED: $0-1/month ✅
 
 ════════════════════════════════════════════════════════════════════════════
 📝 DEPLOYMENT CHECKLIST
