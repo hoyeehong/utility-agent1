@@ -2,7 +2,7 @@
   "buildCommand": "pip install -r requirements.txt",
   "functions": {
     "api/**/*.py": {
-      "runtime": "vercel-python@1.0"
+      "runtime": "vercel-python@1.0.0"
     }
   },
   "env": {
