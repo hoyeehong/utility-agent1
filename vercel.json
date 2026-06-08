@@ -1,0 +1,26 @@
+{
+  "buildCommand": "pip install -r requirements.txt",
+  "functions": {
+    "api/index.py": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "api/telegram.py": {
+      "memory": 512,
+      "maxDuration": 30
+    },
+    "api/calculate.py": {
+      "memory": 512,
+      "maxDuration": 10
+    },
+    "api/**/*.py": {
+      "runtime": "vercel-python@1.0"
+    }
+  },
+  "env": {
+    "PYTHONUNBUFFERED": "1"
+  },
+  "regions": [
+    "sin1"
+  ]
+}
