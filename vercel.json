@@ -14,7 +14,7 @@
       "maxDuration": 10
     },
     "api/**/*.py": {
-      "runtime": "python3.11"
+      "runtime": "vercel-python@3.9"
     }
   },
   "env": {
